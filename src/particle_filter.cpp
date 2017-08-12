@@ -64,18 +64,20 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+	std::normal_distribution<> nd_x(0.0, std_pos[0]);
+	std::normal_distribution<> nd_y(0.0, std_pos[1]);
+	std::normal_distribution<> nd_t(0.0, std_pos[2]);
+
 	for (int i=0; i<particles.size(); i++)
 	  {
 	    double dist = velocity * delta_t;
 
 	    double theta = particles[i].theta;
 
-	    std::random_device rd;
-	    std::mt19937 gen(rd());
-
-	    std::normal_distribution<> nd_x(0.0, std_pos[0]);
-	    std::normal_distribution<> nd_y(0.0, std_pos[1]);
-	    std::normal_distribution<> nd_t(0.0, std_pos[2]);
+	    
 
 	    // Going Straignt?
 	    if (fabs(yaw_rate) < 0.001)
@@ -193,7 +195,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	      double num_b = delta_angle * delta_angle / (2.0 * std_landmark[1] * std_landmark[1]);
 	      double numerator = exp(-1.0 * (num_a + num_b));
 	      double denominator = 2.0 * M_PI * std_landmark[0] * std_landmark[1];
-	      new_weight = numerator / denominator;
+	      new_weight *= numerator / denominator;
 	    } 
 	    particles[i].weight = new_weight;
 	    weights[i] = new_weight;
@@ -217,7 +219,9 @@ void ParticleFilter::resample() {
 	  }
 
 	  // Max of these weights
-	  double max_weight = 0.0;
+	  double max_weight = *max_element(begin(weights), end(weights));
+
+/*
 	  for (int i=0; i<particles.size(); i++)
 	  {
 	    if (weights[i] > max_weight)
@@ -225,6 +229,7 @@ void ParticleFilter::resample() {
 	      max_weight = weights[i];
 	    }
 	}
+*/
 
 	// Resample
 	  double beta = 0.0;
